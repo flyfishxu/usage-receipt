@@ -15,7 +15,7 @@ It's still Working in progress~
 - ESC/POS rendering with 58mm and 80mm paper widths.
 - OpenAI and Anthropic logo rasterization from SVG for receipt headers.
 - Single network printer support now, with data model fields reserved for multiple printers later.
-- 
+
 ## Run
 
 ```bash

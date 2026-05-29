@@ -6,7 +6,7 @@ import androidx.compose.ui.window.rememberWindowState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.unit.dp
 import com.flyfishxu.usage.hooks.HookCommand
-import com.flyfishxu.usage.ui.UsageReceiptDesktopApp
+import com.flyfishxu.usage.ui.app.UsageReceiptDesktopApp
 import java.awt.Dimension
 
 fun main(args: Array<String>) {
