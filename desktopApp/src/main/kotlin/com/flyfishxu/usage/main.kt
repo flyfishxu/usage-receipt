@@ -2,8 +2,12 @@ package com.flyfishxu.usage
 
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import androidx.compose.ui.window.rememberWindowState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.unit.dp
 import com.flyfishxu.usage.hooks.HookCommand
 import com.flyfishxu.usage.ui.UsageReceiptDesktopApp
+import java.awt.Dimension
 
 fun main(args: Array<String>) {
     if (args.firstOrNull() == "hook") {
@@ -14,10 +18,15 @@ fun main(args: Array<String>) {
 }
 
 private fun launchDesktop() = application {
+    val windowState = rememberWindowState(width = 1080.dp, height = 720.dp)
     Window(
         onCloseRequest = ::exitApplication,
         title = "UsageReceipt",
+        state = windowState,
     ) {
+        LaunchedEffect(Unit) {
+            window.minimumSize = Dimension(720, 500)
+        }
         UsageReceiptDesktopApp()
     }
 }
