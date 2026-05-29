@@ -1,4 +1,4 @@
-rootProject.name = "UsageReceipt"
+rootProject.name = "Usage-Receipt"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
