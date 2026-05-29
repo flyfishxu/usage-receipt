@@ -21,16 +21,18 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.flyfishxu.usage"
+            packageName = "Usage Receipt"
             packageVersion = "1.0.0"
 
             macOS {
-                iconFile.set(project.file("../assets/app-icon/usage-receipt.icns"))
+                bundleID = "com.flyfishxu.usage"
+                iconFile.set(project.file("../assets/app-icon/usage-receipt-macos.icns"))
             }
             windows {
                 iconFile.set(project.file("../assets/app-icon/usage-receipt.ico"))
             }
             linux {
+                packageName = "usage-receipt"
                 iconFile.set(project.file("../assets/app-icon/usage-receipt.png"))
             }
         }
