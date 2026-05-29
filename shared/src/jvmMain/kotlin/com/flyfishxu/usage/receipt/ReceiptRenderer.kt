@@ -33,7 +33,6 @@ class ReceiptRenderer(
         builder.keyValue("SESSION", usage.sessionId.shorten(width.columns - 10))
         usage.turnId?.let { builder.keyValue("TURN", it.shorten(width.columns - 7)) }
         builder.keyValue("TIME", TimeFormatter.format(usage.endedAt))
-        usage.cwd?.let { builder.wrappedLine("CWD  ${it.shorten(width.columns - 5)}") }
         builder.separator()
 
         if (usage.items.isEmpty()) {
@@ -80,7 +79,6 @@ class ReceiptRenderer(
         builder.keyValue("SESSION", receipt.sessionId.shorten(width.columns - 10))
         builder.keyValue("START", receipt.startedAt?.let(TimeFormatter::format) ?: "N/A")
         builder.keyValue("END", TimeFormatter.format(receipt.endedAt))
-        receipt.cwd?.let { builder.wrappedLine("CWD  ${it.shorten(width.columns - 5)}") }
         builder.separator()
 
         if (receipt.turns.isEmpty()) {
@@ -88,11 +86,10 @@ class ReceiptRenderer(
         } else {
             receipt.turns.forEachIndexed { index, turn ->
                 if (index > 0) builder.separator('-')
-                builder.bold(true).line("TURN ${index + 1}  ${TimeFormatter.format(turn.endedAt)}").bold(false)
+                builder.bold(true).keyValue("TURN ${index + 1}", TimeFormatter.format(turn.endedAt)).bold(false)
                 turn.turnId?.let { builder.keyValue("TURN ID", it.shorten(width.columns - 10)) }
                 appendItems(builder, turn.items)
-                builder.keyValue("TURN TOKENS", turn.totals.totalTokens().tokens())
-                builder.keyValue("TURN USD", turn.totals.usdCost.usdOrNa())
+                builder.keyValue("TOTAL TOKENS", turn.totals.totalTokens().tokens())
             }
         }
 
@@ -204,7 +201,7 @@ class ReceiptRenderer(
         }
         items.forEachIndexed { index, item ->
             if (index > 0) builder.separator('.')
-            builder.wrappedLine(item.model.uppercase())
+            builder.keyValue("MODEL", item.model.uppercase())
             builder.keyValue("INPUT", item.usage.inputTokens.tokens())
             if (item.usage.cachedInputTokens > 0) builder.keyValue("CACHED", item.usage.cachedInputTokens.tokens())
             if (item.usage.cacheCreationTokens > 0) builder.keyValue("CACHE WRITE", item.usage.cacheCreationTokens.tokens())

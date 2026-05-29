@@ -8,7 +8,6 @@ import java.time.Instant
 data class SessionReceipt(
     val provider: Provider,
     val sessionId: String,
-    val cwd: String?,
     val startedAt: Instant?,
     val endedAt: Instant,
     val turns: List<SessionReceiptTurn>,

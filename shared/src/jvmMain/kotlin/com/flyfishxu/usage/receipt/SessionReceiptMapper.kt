@@ -6,7 +6,6 @@ fun SessionSummary.toSessionReceipt(): SessionReceipt =
     SessionReceipt(
         provider = provider,
         sessionId = sessionId,
-        cwd = cwd,
         startedAt = startedAt,
         endedAt = endedAt,
         turns = turns.map { turn ->
