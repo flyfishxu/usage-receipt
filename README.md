@@ -4,8 +4,8 @@ It collects usage data from Codex and Claude Code hooks, calculates USD cost fro
 
 It's still Working in progress~
 
-| ![UsageReceipt UI](https://cloudflareimg.cdn.sn/i/6a190accbab2d_1780026060.webp) | ![Receipt](https://cloudflareimg.cdn.sn/i/6a190d218115b_1780026657.webp) |
-|:---:|:---:|
+| ![Home Page](https://cloudflareimg.cdn.sn/i/6a192ce405cf1_1780034788.webp) | ![Receipt Preview](https://cloudflareimg.cdn.sn/i/6a192ce53246c_1780034789.webp) |
+|:--------------------------------------------------------------------------:|:--------------------------------------------------------------------------------:|
 ## Features
 
 - Compose Desktop UI with printer, hook, session, and receipt preview panels.
@@ -15,7 +15,7 @@ It's still Working in progress~
 - ESC/POS rendering with 58mm and 80mm paper widths.
 - OpenAI and Anthropic logo rasterization from SVG for receipt headers.
 - Single network printer support now, with data model fields reserved for multiple printers later.
-
+  ![Receipt](https://cloudflareimg.cdn.sn/i/6a192d66c891e_1780034918.webp)
 ## Run
 
 ```bash
