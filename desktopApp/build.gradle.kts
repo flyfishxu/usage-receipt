@@ -23,6 +23,16 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "com.flyfishxu.usage"
             packageVersion = "1.0.0"
+
+            macOS {
+                iconFile.set(project.file("../assets/app-icon/usage-receipt.icns"))
+            }
+            windows {
+                iconFile.set(project.file("../assets/app-icon/usage-receipt.ico"))
+            }
+            linux {
+                iconFile.set(project.file("../assets/app-icon/usage-receipt.png"))
+            }
         }
     }
 }

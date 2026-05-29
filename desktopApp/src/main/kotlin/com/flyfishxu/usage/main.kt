@@ -21,7 +21,7 @@ private fun launchDesktop() = application {
     val windowState = rememberWindowState(width = 1080.dp, height = 720.dp)
     Window(
         onCloseRequest = ::exitApplication,
-        title = "UsageReceipt",
+        title = "Usage Receipt",
         state = windowState,
     ) {
         LaunchedEffect(Unit) {
