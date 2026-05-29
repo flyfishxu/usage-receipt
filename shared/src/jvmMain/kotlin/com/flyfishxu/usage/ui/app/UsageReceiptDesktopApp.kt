@@ -2,6 +2,7 @@ package com.flyfishxu.usage.ui.app
 
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -34,7 +35,7 @@ import com.flyfishxu.usage.ui.components.CommandButton
 import com.flyfishxu.usage.ui.panels.HeaderPanel
 import com.flyfishxu.usage.ui.panels.HooksPanel
 import com.flyfishxu.usage.ui.panels.PrinterPanel
-import com.flyfishxu.usage.ui.panels.ReceiptPreviewDrawer
+import com.flyfishxu.usage.ui.panels.ReceiptPreviewModal
 import com.flyfishxu.usage.ui.panels.ReceiptPreviewTarget
 import com.flyfishxu.usage.ui.panels.SessionExplorerPanel
 import com.flyfishxu.usage.ui.panels.SessionReceiptPreviewTarget
@@ -88,109 +89,109 @@ fun UsageReceiptDesktopApp() {
         }
 
         Surface(modifier = Modifier.fillMaxSize(), color = GeekTheme.background) {
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Column(
+            Box(modifier = Modifier.fillMaxSize()) {
+                Row(
                     modifier = Modifier
-                        .width(340.dp)
-                        .fillMaxHeight()
-                        .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    HeaderPanel(status = status)
-                    PrinterPanel(config) { nextPrinter ->
-                        saveConfig(config.copy(printer = nextPrinter))
-                    }
-                    CommandButton(
-                        text = "TEST CONNECTION",
-                        primary = true,
-                        onClick = {
+                    Column(
+                        modifier = Modifier
+                            .width(340.dp)
+                            .fillMaxHeight()
+                            .verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        HeaderPanel(status = status)
+                        PrinterPanel(config) { nextPrinter ->
+                            saveConfig(config.copy(printer = nextPrinter))
+                        }
+                        CommandButton(
+                            text = "TEST CONNECTION",
+                            primary = true,
+                            onClick = {
+                                scope.launch {
+                                    status = "Testing printer..."
+                                    status = withContext(Dispatchers.IO) {
+                                        printerClient.testConnection(config.printer)
+                                            .fold({ "Printer connection OK" }, { "Printer connection failed: ${it.message}" })
+                                    }
+                                }
+                            },
+                        )
+                        CommandButton(
+                            text = "PRINT TEST RECEIPT",
+                            onClick = {
+                                scope.launch {
+                                    val sample = sampleUsage()
+                                    status = withContext(Dispatchers.IO) {
+                                        printerClient.print(config.printer, receiptRenderer.render(sample, config.printer.width))
+                                            .fold({ "Test receipt sent" }, { "Print failed: ${it.message}" })
+                                    }
+                                }
+                            },
+                        )
+                        HooksPanel(config, hookInstaller) { provider, enabled ->
                             scope.launch {
-                                status = "Testing printer..."
-                                status = withContext(Dispatchers.IO) {
-                                    printerClient.testConnection(config.printer)
-                                        .fold({ "Printer connection OK" }, { "Printer connection failed: ${it.message}" })
+                                status = if (enabled) "Installing ${provider.displayName} hook..." else "Removing ${provider.displayName} hook..."
+                                val result = withContext(Dispatchers.IO) {
+                                    if (enabled) hookInstaller.install(provider) else hookInstaller.uninstall(provider)
                                 }
-                            }
-                        },
-                    )
-                    CommandButton(
-                        text = "PRINT TEST RECEIPT",
-                        onClick = {
-                            scope.launch {
-                                val sample = sampleUsage()
-                                status = withContext(Dispatchers.IO) {
-                                    printerClient.print(config.printer, receiptRenderer.render(sample, config.printer.width))
-                                        .fold({ "Test receipt sent" }, { "Print failed: ${it.message}" })
+                                if (result.isSuccess) {
+                                    val nextHooks = when (provider) {
+                                        Provider.OPENAI_CODEX -> config.hooks.copy(codexEnabled = enabled)
+                                        Provider.ANTHROPIC_CLAUDE_CODE -> config.hooks.copy(claudeEnabled = enabled)
+                                    }
+                                    saveConfig(config.copy(hooks = nextHooks))
+                                    status = "${provider.displayName} hook ${if (enabled) "installed" else "removed"}"
+                                } else {
+                                    status = "Hook update failed: ${result.exceptionOrNull()?.message}"
                                 }
-                            }
-                        },
-                    )
-                    HooksPanel(config, hookInstaller) { provider, enabled ->
-                        scope.launch {
-                            status = if (enabled) "Installing ${provider.displayName} hook..." else "Removing ${provider.displayName} hook..."
-                            val result = withContext(Dispatchers.IO) {
-                                if (enabled) hookInstaller.install(provider) else hookInstaller.uninstall(provider)
-                            }
-                            if (result.isSuccess) {
-                                val nextHooks = when (provider) {
-                                    Provider.OPENAI_CODEX -> config.hooks.copy(codexEnabled = enabled)
-                                    Provider.ANTHROPIC_CLAUDE_CODE -> config.hooks.copy(claudeEnabled = enabled)
-                                }
-                                saveConfig(config.copy(hooks = nextHooks))
-                                status = "${provider.displayName} hook ${if (enabled) "installed" else "removed"}"
-                            } else {
-                                status = "Hook update failed: ${result.exceptionOrNull()?.message}"
                             }
                         }
                     }
+
+                    SessionExplorerPanel(
+                        sessions = sessions,
+                        selected = selectedSession,
+                        onSelectSession = { selectedSession = it },
+                        onRefresh = {
+                            reloadSessions()
+                            status = "Sessions reloaded"
+                        },
+                        onPrintSession = { session ->
+                            scope.launch {
+                                status = withContext(Dispatchers.IO) {
+                                    printerClient.print(config.printer, receiptRenderer.renderSession(session.toSessionReceipt(), config.printer.width))
+                                        .fold({ "Session receipt sent" }, { "Print failed: ${it.message}" })
+                                }
+                            }
+                        },
+                        onPreviewSession = { session ->
+                            previewTarget = SessionReceiptPreviewTarget(session)
+                        },
+                        onPrintTurn = { usage ->
+                            scope.launch {
+                                status = withContext(Dispatchers.IO) {
+                                    printerClient.print(config.printer, receiptRenderer.render(usage, config.printer.width))
+                                        .fold({ "Turn receipt sent" }, { "Print failed: ${it.message}" })
+                                }
+                            }
+                        },
+                        onPreviewTurn = { usage ->
+                            previewTarget = TurnReceiptPreviewTarget(usage)
+                        },
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                    )
                 }
 
-                SessionExplorerPanel(
-                    sessions = sessions,
-                    selected = selectedSession,
-                    onSelectSession = { selectedSession = it },
-                    onRefresh = {
-                        reloadSessions()
-                        status = "Sessions reloaded"
-                    },
-                    onPrintSession = { session ->
-                        scope.launch {
-                            status = withContext(Dispatchers.IO) {
-                                printerClient.print(config.printer, receiptRenderer.renderSession(session.toSessionReceipt(), config.printer.width))
-                                    .fold({ "Session receipt sent" }, { "Print failed: ${it.message}" })
-                            }
-                        }
-                    },
-                    onPreviewSession = { session ->
-                        previewTarget = SessionReceiptPreviewTarget(session)
-                    },
-                    onPrintTurn = { usage ->
-                        scope.launch {
-                            status = withContext(Dispatchers.IO) {
-                                printerClient.print(config.printer, receiptRenderer.render(usage, config.printer.width))
-                                    .fold({ "Turn receipt sent" }, { "Print failed: ${it.message}" })
-                            }
-                        }
-                    },
-                    onPreviewTurn = { usage ->
-                        previewTarget = TurnReceiptPreviewTarget(usage)
-                    },
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                ReceiptPreviewModal(
+                    target = previewTarget,
+                    width = config.printer.width,
+                    renderer = receiptRenderer,
+                    onClose = { previewTarget = null },
                 )
-
-                previewTarget?.let { target ->
-                    ReceiptPreviewDrawer(
-                        target = target,
-                        width = config.printer.width,
-                        renderer = receiptRenderer,
-                        onClose = { previewTarget = null },
-                    )
-                }
             }
         }
     }

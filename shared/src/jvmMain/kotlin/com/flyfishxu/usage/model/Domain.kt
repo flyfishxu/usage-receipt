@@ -16,8 +16,8 @@ enum class ReceiptWidth(
     val columns: Int,
     val printWidthPixels: Int,
 ) {
-    MM_58("58mm", 32, 384),
-    MM_80("80mm", 48, 576),
+    MM_58("58mm", 32, 282),
+    MM_80("80mm", 48, 410),
 }
 
 data class TokenUsage(
